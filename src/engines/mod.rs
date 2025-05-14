@@ -1,13 +1,12 @@
-use candle_generator::{CandleGenerator, Trade as CGTrade, Instrument, Pair, MarketType, Side, Timeframe};
+use candle_generator::{CandleGenerator, Trade as CGTrade, Candle as CGCandle, Instrument, Pair, MarketType, Side, Timeframe};
 
 pub trait AggregatorEngine {
     fn name(&self) -> &'static str;
-    fn aggregate(&self, orders: &[Order]) -> Vec<Trade>;
+    fn aggregate(&self, trades: &[Trade]) -> Vec<Candle>;
 }
 
-// Пример структуры Order и Trade (можно расширить)
 #[derive(Debug, Clone)]
-pub struct Order {
+pub struct Trade {
     pub id: String,
     pub price: f64,
     pub amount: f64,
@@ -16,45 +15,49 @@ pub struct Order {
 }
 
 #[derive(Debug, Clone)]
-pub struct Trade {
-    pub id: String,
-    pub price: f64,
-    pub amount: f64,
+pub struct Candle {
     pub timestamp: i64,
+    pub open: f64,
+    pub high: f64,
+    pub low: f64,
+    pub close: f64,
+    pub volume: f64,
+    pub trade_count: u64,
 }
 
 // Stub для candle_generator (реализация будет позже)
 pub struct CandleGeneratorEngine;
 impl AggregatorEngine for CandleGeneratorEngine {
     fn name(&self) -> &'static str { "candle_generator" }
-    fn aggregate(&self, orders: &[Order]) -> Vec<Trade> {
-        // Преобразуем Order в candle_generator::Trade
-        let trades: Vec<CGTrade> = orders.iter().map(|o| {
+    fn aggregate(&self, trades: &[Trade]) -> Vec<Candle> {
+        let cg_trades: Vec<CGTrade> = trades.iter().map(|t| {
             CGTrade {
                 instrument: Instrument {
                     pair: Pair { base_id: "BTC".to_string(), quote_id: "USDT".to_string() },
                     exchange: "bench".to_string(),
                     market_type: MarketType::Spot,
                 },
-                id: o.id.clone(),
-                price: o.price,
-                amount: o.amount,
-                side: match o.side.as_str() {
+                id: t.id.clone(),
+                price: t.price,
+                amount: t.amount,
+                side: match t.side.as_str() {
                     "buy" => Side::Buy,
                     "sell" => Side::Sell,
                     _ => Side::Unknown,
                 },
-                timestamp: chrono::Utc.timestamp_millis_opt(o.timestamp).unwrap(),
+                timestamp: chrono::Utc.timestamp_millis_opt(t.timestamp).unwrap(),
             }
         }).collect();
         let generator = CandleGenerator::default();
-        let candles = generator.aggregate(trades.iter(), Timeframe::m1);
-        // Преобразуем свечи обратно в Vec<Trade> (например, open как trade)
-        candles.iter().map(|c| Trade {
-            id: format!("candle_{}", c.timestamp.timestamp_millis()),
-            price: c.open,
-            amount: c.volume,
+        let cg_candles = generator.aggregate(cg_trades.iter(), Timeframe::m1);
+        cg_candles.iter().map(|c| Candle {
             timestamp: c.timestamp.timestamp_millis(),
+            open: c.open,
+            high: c.high,
+            low: c.low,
+            close: c.close,
+            volume: c.volume,
+            trade_count: c.trade_count,
         }).collect()
     }
 } 
