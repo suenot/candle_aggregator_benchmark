@@ -41,7 +41,7 @@ fn main() {
         println!("Нет валидных движков для бенчмарка");
         return;
     }
-    let orders = data::generate_orders(args.trades);
-    let results = bench::run_benchmark(&engines, &orders, args.repeat);
+    let trades = data::generate_trades(args.trades);
+    let results = bench::run_benchmark(&engines, &trades, args.repeat);
     bench::print_report(&results, &args.report);
 } 
