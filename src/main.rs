@@ -3,6 +3,8 @@ mod data;
 mod engines;
 
 use clap::Parser;
+use engines::CandleGeneratorEngine;
+use engines::AggregatorEngine;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -26,9 +28,20 @@ struct Args {
 
 fn main() {
     let args = Args::parse();
-    println!("Benchmark engines: {:?}", args.engine);
-    println!("Trades: {}", args.trades);
-    println!("Repeat: {}", args.repeat);
-    println!("Report format: {}", args.report);
-    // TODO: регистрация движков, генерация данных, запуск бенчмарка
+    let engines_list: Vec<&str> = args.engine.split(',').map(|s| s.trim()).collect();
+    let mut engines: Vec<Box<dyn AggregatorEngine>> = vec![];
+    for e in engines_list {
+        match e {
+            "candle_generator" => engines.push(Box::new(CandleGeneratorEngine)),
+            // TODO: другие движки
+            _ => println!("Неизвестный движок: {} (будет пропущен)", e),
+        }
+    }
+    if engines.is_empty() {
+        println!("Нет валидных движков для бенчмарка");
+        return;
+    }
+    let orders = data::generate_orders(args.trades);
+    let results = bench::run_benchmark(&engines, &orders, args.repeat);
+    bench::print_report(&results, &args.report);
 } 
