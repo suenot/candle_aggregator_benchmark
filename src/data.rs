@@ -12,4 +12,14 @@ pub fn generate_trades(count: usize) -> Vec<Trade> {
             timestamp: 1_700_000_000_000 + (i as i64) * 1000,
         }
     }).collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_generate_trades() {
+        let trades = super::generate_trades(5);
+        assert_eq!(trades.len(), 5);
+    }
 } 
