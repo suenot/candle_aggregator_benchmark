@@ -1,6 +1,7 @@
 use crate::engines::{AggregatorEngine, Trade, Candle};
 use std::time::Instant;
 
+#[derive(serde::Serialize)]
 pub struct BenchmarkResult {
     pub engine: String,
     pub times: Vec<f64>,
