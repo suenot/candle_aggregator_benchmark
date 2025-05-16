@@ -60,4 +60,31 @@ impl AggregatorEngine for CandleGeneratorEngine {
             trade_count: c.trade_count,
         }).collect()
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_aggregate_empty() {
+        let engine = CandleGeneratorEngine;
+        let trades = vec![];
+        let candles = engine.aggregate(&trades);
+        assert!(candles.is_empty());
+    }
+    #[test]
+    fn test_aggregate_one_trade() {
+        let engine = CandleGeneratorEngine;
+        let trades = vec![Trade {
+            id: "t1".to_string(),
+            price: 100.0,
+            amount: 1.0,
+            side: "buy".to_string(),
+            timestamp: 1714000000000,
+        }];
+        let candles = engine.aggregate(&trades);
+        assert_eq!(candles.len(), 1);
+        assert_eq!(candles[0].open, 100.0);
+        assert_eq!(candles[0].volume, 1.0);
+    }
 } 
