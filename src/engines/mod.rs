@@ -1,4 +1,5 @@
 use candle_generator::{CandleGenerator, Trade as CGTrade, Candle as CGCandle, Instrument, Pair, MarketType, Side, Timeframe};
+use chrono::TimeZone;
 
 pub trait AggregatorEngine {
     fn name(&self) -> &'static str;
